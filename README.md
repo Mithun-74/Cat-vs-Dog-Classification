@@ -10,7 +10,7 @@ The model is deployed as an interactive web application using **Gradio** and hos
 
 Try the application here:
 
-👉 https://huggingface.co/
+👉 [https://huggingface.co/](https://huggingface.co/spaces/Mithun74/Cat_Vs_Dog_Classifier)
 
 Upload an image of a cat or dog and the model will predict the correct class.
 
