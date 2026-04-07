@@ -47,7 +47,8 @@ The dataset contains thousands of labeled images of cats and dogs used for train
 
 ### Application Interface
 
-![App Screenshot](screenshots/app_interface.png)
+![App Screenshot]<img width="1897" height="973" alt="image" src="https://github.com/user-attachments/assets/55bbd049-25ab-4980-83d9-4f94370ea9cb" />
+
 
 
 ---
