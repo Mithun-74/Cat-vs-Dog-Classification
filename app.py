@@ -1,103 +1,91 @@
-import os
-
 import gradio as gr
 import tensorflow as tf
 import numpy as np
 from PIL import Image
 
-MODEL_PATH = "CvsD-Classification.h5"
-
-# Load trained model (if available)
-model = None
-if os.path.exists(MODEL_PATH):
-    try:
-        model = tf.keras.models.load_model(MODEL_PATH)
-    except Exception as e:
-        print(f"⚠️ Failed to load model '{MODEL_PATH}': {e}")
-else:
-    print(f"⚠️ Model file not found at '{MODEL_PATH}'. Please add it to run predictions.")
+# Load model
+model = tf.keras.models.load_model("CvsD-Classification.h5")
 
 IMG_SIZE = 128
 
 
 def predict_image(img):
 
-    # Handle empty input
     if img is None:
-        return {"Error": 1.0}
+        return "Please upload an image", None
 
-    # Convert image to RGB
     img = img.convert("RGB")
-
-    # Resize image
     img = img.resize((IMG_SIZE, IMG_SIZE))
 
-    # Convert to array
-    img_array = np.array(img)
-
-    # Normalize
-    img_array = img_array / 255.0
-
-    # Add batch dimension
+    img_array = np.array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
 
-    # Prediction
-    if model is None:
-        return {"Error": "Model not loaded"}
-
-    try:
-        prediction = model.predict(img_array)[0][0]
-    except Exception as e:
-        return {"Error": str(e)}
+    prediction = model.predict(img_array)[0][0]
 
     dog_prob = float(prediction)
     cat_prob = float(1 - prediction)
 
-    return {
-        "Dog 🐶": dog_prob,
-        "Cat 🐱": cat_prob
-    }
+    label = "Dog 🐶" if dog_prob > cat_prob else "Cat 🐱"
+
+    return label, {"Dog 🐶": dog_prob, "Cat 🐱": cat_prob}
 
 
 with gr.Blocks() as demo:
 
     gr.Markdown(
         """
-        # 🐱🐶 Cat vs Dog Image Classifier
-        Upload an image and the CNN model will predict whether it is a **Cat** or **Dog**.
+        # 🐱🐶 Cat vs Dog Image Classifier  
+        ### Deep Learning Image Classification using CNN
+
+        Upload an image of a **cat or dog**, and the model will predict the class.
         """
     )
 
     with gr.Row():
 
-        with gr.Column():
+        with gr.Column(scale=1):
 
             image_input = gr.Image(
                 type="pil",
-                label="Upload Image"
+                label="Upload Image",
+                height=300
             )
 
-            predict_btn = gr.Button("Predict")
+            predict_btn = gr.Button("Predict", variant="primary")
 
-        with gr.Column():
+        with gr.Column(scale=1):
 
-            output = gr.Label(label="Prediction")
+            prediction_text = gr.Textbox(
+                label="Prediction",
+                interactive=False
+            )
+
+            confidence_chart = gr.Label(
+                label="Prediction Confidence"
+            )
 
     predict_btn.click(
         fn=predict_image,
         inputs=image_input,
-        outputs=output
+        outputs=[prediction_text, confidence_chart]
     )
 
     gr.Markdown(
         """
         ---
-        **Model:** Convolutional Neural Network (CNN)  
-        **Dataset:** Kaggle Cats vs Dogs Dataset  
-        **Framework:** TensorFlow / Keras   
-        **Done By:** Mithun 
+        ### 📊 Model Details
+        - Model: Convolutional Neural Network (CNN)
+        - Dataset: Kaggle Cats vs Dogs
+        - Input Size: 128 × 128 RGB images
+        - Framework: TensorFlow / Keras
+
+        ### ⚙️ How it Works
+        1️⃣ Upload an image  
+        2️⃣ Image is resized and normalized  
+        3️⃣ CNN predicts probability  
+        4️⃣ Result displayed with confidence
         """
     )
 
 
-demo.launch()
+demo.launch(theme=gr.themes.Soft())
